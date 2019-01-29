@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+{% block main %}
+    <h3>Actions</h3>
+    <h4>
+        {% if post.title is defined %}
+            Title:
+            {{ post.title|capitalize }}
+        {% else %}
+            No post title available
+        {% endif %}
+    </h4>
+    <div>
+        <p>
+            <b>Status:</b> {{ post.currentPlace }}
+        <form action="{{ path('blog_reset_marking', {id: post.id}) }}" method="post" class="form-inline">
+            <button type="submit" class="btn btn-danger btn-xs">Reset marking</button>
+        </form>
+        </p>
+        <p>
+            <b>Content:</b> {{ post.content }}
+        </p>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <h2>Single example</h2>
+            {% if workflow_can(post, 'to_review') %}
+                <a href="#">Submit to review</a>
+            {% endif %}
+            {% if workflow_can(post, 'publish') %}
+                <a href="#">Publish article</a>
+            {% endif %}
+            {% if workflow_can(post, 'reject') %}
+                <a href="#">Reject article</a>
+            {% endif %}
+        </div>
+        <div class="col-md-3">
+            <h2>Loop example</h2>
+            Or loop through the enabled transitions<br>
+            {% for transition in workflow_transitions(post) %}
+                <a href="#">{{ transition.name }}</a>
+            {% else %}
+                No actions available.
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <h2>What can you do?</h2>
+            <form action="{{ path('blog_apply_transition', {id: post.id}) }}" method="post">
+                <div class="btn-group-vertical" role="group">
+                    {% for transition in workflow_transitions(post) %}
+                        <button type="submit" name="transition" value="{{ transition.name }}"
+                                {% if workflow_can(post, transition.name) -%}
+                                    class="btn btn-primary"
+                                {%- else -%}
+                                    class="btn btn-danger" disabled="disabled"
+                                {%- endif -%}
+                        >
+                            {{ transition.name }}
+                        </button>
+                    {% else %}
+                        No actions available
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <h2>Metadata</h2>
+            <p>
+                <strong>Workflow</strong>:<br>
+                <code>{{ workflow_metadata(post, 'title') }}</code>
+            </p>
+            <p>
+                <strong>Current place(s)</strong>
+            <ul>
+                {% for place in workflow_marked_places(post) %}
+                    <li>
+                        {{ place }}:
+                        <code>{{ workflow_metadata(post, 'title', place) ?: 'n-a' }}</code>
+                    </li>
+                {% endfor %}
+            </ul>
+            </p>
+            <p>
+                <strong>Enabled transition(s)</strong>
+            <ul>
+                {% for transition in workflow_transitions(post) %}
+                    <li>
+                        {{ transition.name }}:
+                        <code>{{ workflow_metadata(post, 'title', transition) ?: 'n-a' }}</code>
+                    </li>
+                {% endfor %}
+            </ul>
+            </p>
+        </div>
+    </div>
+
+    <div>
+        <h3>
+            Check if the object is in some specific place
+        </h3>
+        {% if workflow_has_marked_place(post, 'review') %}
+            <p>This post is ready for review.</p>
+        {% endif %}
+    </div>
+    <div>
+        <h3>
+            Check if some place has been marked on the object
+        </h3>
+        {% if 'waiting_some_approval' in workflow_marked_places(post) %}
+            <span class="label">PENDING</span>
+        {% endif %}
+    </div>
+{% endblock %}

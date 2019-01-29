@@ -1,0 +1,37 @@
+framework:
+    workflows:
+        blog_publishing:
+            type: 'state_machine' # or 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'single_state'
+                arguments:
+                    - 'currentPlace'
+            supports:
+                - App\Entity\BlogPost
+            initial_place: draft
+            places:
+                - draft
+                - review
+                - rejected
+                - published
+                - removed
+            transitions:
+                to_review:
+                    from: draft
+                    to:   review
+                publish:
+                    #                    guard: "is_granted('ROLE_SUPER_ADMIN')"
+                    from: review
+                    to:   published
+                reject:
+                    #                    guard: "is_granted('ROLE_SUPER_ADMIN')"
+                    from: review
+                    to:   rejected
+                reconsider:
+                    from: rejected
+                    to: draft
+                remove_post:
+                    from: published
+                    to: removed

@@ -1,0 +1,5 @@
+enqueue:
+  default:
+    transport: "file:///C:\\Users\\DarylHolling\\symfony\\phpenqueue\\var\\enqueue"
+    monitoring: 'influxdb://192.168.35.105:8086?db=symfony_influx'
+    client: ~
